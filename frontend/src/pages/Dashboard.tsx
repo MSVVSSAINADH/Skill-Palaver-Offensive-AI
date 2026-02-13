@@ -1,5 +1,5 @@
-import React from 'react';
-import { Shield, Lock, Users, AlertTriangle, Key, Activity, BarChart } from 'lucide-react';
+
+import { Shield, Lock, Users, AlertTriangle, Activity, BarChart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import axios from 'axios';

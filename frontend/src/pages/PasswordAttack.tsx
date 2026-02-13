@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Lock, Unlock, Play, RefreshCw, AlertCircle, CheckCircle, Activity, AlertTriangle } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Lock, Unlock, Play, RefreshCw, AlertCircle, Activity, AlertTriangle, Terminal } from 'lucide-react';
 import axios from 'axios';
 
 const PasswordAttack = () => {
@@ -12,6 +12,43 @@ const PasswordAttack = () => {
     const [isRunning, setIsRunning] = useState(false);
     const [result, setResult] = useState<any>(null);
     const [error, setError] = useState('');
+    const [logs, setLogs] = useState<string[]>([]);
+    const logsIntervalRef = useRef<any>(null);
+    const logsBottomRef = useRef<HTMLDivElement>(null);
+
+    // Auto-scroll logs
+    useEffect(() => {
+        if (logsBottomRef.current) {
+            logsBottomRef.current.scrollIntoView({ behavior: "smooth" });
+        }
+    }, [logs]);
+
+    const startSimulationLog = () => {
+        setLogs([]);
+        if (logsIntervalRef.current) clearInterval(logsIntervalRef.current);
+
+        logsIntervalRef.current = setInterval(() => {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+            const randomString = Array.from({ length: 8 + Math.floor(Math.random() * 8) }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+            const method = attackType === 'dictionary' ? 'DICT_CHECK' : (attackType === 'mask' ? 'MASK_MATCH' : 'BRUTE_FORCE');
+            const newLog = `[${new Date().toLocaleTimeString().split(' ')[0]}] ${method} :: ${randomString} ... [FAILED]`;
+
+            setLogs(prev => {
+                const newLogs = [...prev, newLog];
+                if (newLogs.length > 20) return newLogs.slice(newLogs.length - 20); // Keep last 20
+                return newLogs;
+            });
+        }, 50); // Fast updates
+    };
+
+    const stopSimulationLog = (success: boolean, password?: string) => {
+        if (logsIntervalRef.current) clearInterval(logsIntervalRef.current);
+        if (success && password) {
+            setLogs(prev => [...prev, `[${new Date().toLocaleTimeString().split(' ')[0]}] CRACK_SUCCESS :: ${password} ... [MATCH FOUND!]`]);
+        } else {
+            setLogs(prev => [...prev, `[${new Date().toLocaleTimeString().split(' ')[0]}] PROCESS_END :: Timeout or Exhausted.`]);
+        }
+    };
 
     const runAttack = async () => {
         if (!targetHash) {
@@ -21,6 +58,7 @@ const PasswordAttack = () => {
         setIsRunning(true);
         setError('');
         setResult(null);
+        startSimulationLog();
 
         // Educational warning for Brute Force
         if (attackType === 'bruteforce') {
@@ -47,8 +85,10 @@ const PasswordAttack = () => {
                 }
             });
             setResult(response.data);
+            stopSimulationLog(response.data.cracked, response.data.password);
         } catch (err) {
             setError("Attack failed or backend unreachable.");
+            stopSimulationLog(false);
             console.error(err);
         } finally {
             setIsRunning(false);
@@ -318,6 +358,26 @@ const PasswordAttack = () => {
                             <p>Awaiting simulation data...</p>
                         </div>
                     )}
+
+                    {/* Matrix Terminal Log */}
+                    <div className="mt-6 bg-black rounded-lg p-4 font-mono text-xs h-48 overflow-hidden border border-gray-700 shadow-inner relative">
+                        <div className="absolute top-2 right-2 text-green-500 opacity-50 flex items-center">
+                            <Terminal size={14} className="mr-1" /> TERMINAL
+                        </div>
+                        <div className="overflow-y-auto h-full space-y-1 scrollbar-hide">
+                            {logs.map((log, i) => (
+                                <div key={i} className={`${log.includes('MATCH FOUND') ? 'text-green-400 font-bold text-sm' : 'text-green-800/80'}`}>
+                                    {log}
+                                </div>
+                            ))}
+                            <div ref={logsBottomRef} />
+                        </div>
+                        {isRunning && (
+                            <div className="absolute bottom-2 right-4 text-green-500 animate-pulse text-xs">
+                                PROCESSING...
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

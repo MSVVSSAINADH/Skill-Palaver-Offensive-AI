@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Mail, Send, AlertTriangle, ShieldCheck, User, MessageSquare, Play, X, Check, ThumbsUp, ThumbsDown } from 'lucide-react';
 import axios from 'axios';
 

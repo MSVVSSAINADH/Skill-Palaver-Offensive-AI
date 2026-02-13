@@ -142,20 +142,7 @@ class PasswordAttacker:
                         if self.hash_password(guess, algorithm) == target_hash: return True, guess, attempts
                         
         return False, None, attempts
-                guess = "".join(guess_tuple)
-                attempts += 1
-                
-                if algorithm == "bcrypt":
-                     if bcrypt.checkpw(guess.encode(), target_hash.encode()):
-                         return True, guess, attempts
-                else:
-                    if self.hash_password(guess, algorithm) == target_hash:
-                        return True, guess, attempts
-                    # Check newline variant
-                    if self.hash_password(guess + "\n", algorithm) == target_hash:
-                         return True, guess + "\\n", attempts
-        
-        return False, None, attempts
+
 
     def ai_guided_attack(self, target_hash: str, algorithm: str, hints: dict) -> tuple[bool, str, int]:
         attempts = 0

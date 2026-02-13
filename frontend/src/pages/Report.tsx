@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { FileText, CheckCircle, AlertTriangle, Download } from 'lucide-react';
 import axios from 'axios';
+import { toPng } from 'html-to-image';
+import { jsPDF } from 'jspdf';
 
 const Report = () => {
     const [report, setReport] = useState<any>(null);
+    const reportRef = React.useRef<HTMLDivElement>(null);
 
     const generateReport = async () => {
         try {
@@ -22,6 +25,40 @@ const Report = () => {
             setReport(response.data);
         } catch (error) {
             console.error("Failed to generate report", error);
+        }
+    };
+
+    const handleDownloadPDF = async () => {
+        console.log("Download initiated");
+        if (!reportRef.current) {
+            console.error("Report reference is null");
+            return;
+        }
+
+        try {
+            console.log("Starting html-to-image capture...");
+            const imgData = await toPng(reportRef.current, {
+                cacheBust: true,
+                pixelRatio: 2,
+                backgroundColor: '#1f2937' // Match bg-gray-800
+            });
+            console.log("Image captured successfully");
+
+            const pdf = new jsPDF({
+                orientation: 'portrait',
+                unit: 'px',
+                format: [reportRef.current.offsetWidth * 2, reportRef.current.offsetHeight * 2] // Scale for pixel ratio
+            });
+
+            const imgProps = pdf.getImageProperties(imgData);
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            pdf.save(`security_profile_${report.user_name.replace(/\s+/g, '_')}.pdf`);
+            console.log("PDF saved");
+        } catch (error) {
+            console.error("Failed to generate PDF", error);
         }
     };
 
@@ -45,7 +82,7 @@ const Report = () => {
                     </button>
                 </div>
             ) : (
-                <div className="bg-gray-800 rounded-xl p-8 border border-gray-700 animation-fade-in">
+                <div ref={reportRef} className="bg-gray-800 rounded-xl p-8 border border-gray-700 animation-fade-in">
                     <div className="flex justify-between items-start mb-8 border-b border-gray-700 pb-6">
                         <div>
                             <h2 className="text-2xl font-bold text-white mb-1">Security Profile: {report.user_name}</h2>
@@ -84,8 +121,11 @@ const Report = () => {
                     </div>
 
                     <div className="mt-8 pt-6 border-t border-gray-700 flex justify-end">
-                        <button className="flex items-center text-cyan-400 hover:text-cyan-300 font-medium">
-                            <Download size={18} className="mr-2" /> Download PDF Report (Mock)
+                        <button
+                            onClick={handleDownloadPDF}
+                            className="flex items-center text-cyan-400 hover:text-cyan-300 font-medium"
+                        >
+                            <Download size={18} className="mr-2" /> Download PDF Report
                         </button>
                     </div>
                 </div>

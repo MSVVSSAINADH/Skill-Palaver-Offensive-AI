@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { MessageCircle, Send, Shield, AlertTriangle, User, RefreshCw } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { MessageCircle, Shield, AlertTriangle, User, RefreshCw } from 'lucide-react';
 import axios from 'axios';
 
 const ChatPhishing = () => {
