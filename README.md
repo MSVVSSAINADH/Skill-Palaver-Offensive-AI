@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # 🛡️ CyberAware - Gamified Cybersecurity Training Platform
 
 **CyberAware** is an advanced, interactive training platform designed to bridge the gap between theoretical cybersecurity knowledge and practical defense. By simulating real-world attacks in a safe, gamified environment, it empowers users to build "muscle memory" against threats like phishing, social engineering, and weak password policies.
