@@ -21,7 +21,7 @@ class PasswordAttacker:
         else:
             raise ValueError("Unsupported algorithm")
 
-    def dictionary_attack(self, target_hash: str, algorithm: str, wordlist: list[str], use_rules: bool = False) -> tuple[bool, str, int]:
+    def dictionary_attack(self, target_hash: str, algorithm: str, wordlist: list[str], use_rules: bool = False, mutation_intensity: str = "low") -> tuple[bool, str, int]:
         attempts = 0
         rules = []
         if use_rules:
@@ -38,6 +38,13 @@ class PasswordAttacker:
                 lambda w: w + "2025",                    # Append Year
                 lambda w: w.replace('a', '@').replace('e', '3').replace('i', '1').replace('o', '0').replace('s', '$') # Leet
             ]
+            if mutation_intensity == "high":
+                rules.extend([
+                    lambda w: w + "1234",
+                    lambda w: w + "!!!",
+                    lambda w: w + "999",
+                    lambda w: w.replace('a', '@').replace('e', '3').replace('i', '1').replace('o', '0').replace('s', '$').upper()
+                ])
         else:
             rules = [lambda w: w]
 
@@ -144,7 +151,7 @@ class PasswordAttacker:
         return False, None, attempts
 
 
-    def ai_guided_attack(self, target_hash: str, algorithm: str, hints: dict) -> tuple[bool, str, int]:
+    def ai_guided_attack(self, target_hash: str, algorithm: str, hints: dict, mutation_intensity: str = "low") -> tuple[bool, str, int]:
         attempts = 0
         guesses = set()
 
@@ -160,7 +167,9 @@ class PasswordAttacker:
 
         # Common patterns to append
         appendages = ["123", "1", "!", "2023", "2024", "2025", "@123", "123!", "321"]
-        
+        if mutation_intensity == "high":
+            appendages.extend(["1234", "!!!", "111", "999", "admin", "password"])
+            
         # 1. Try raw hints
         for word in base_words:
             if word not in guesses:

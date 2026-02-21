@@ -299,11 +299,11 @@ const PasswordAttack = () => {
                             <div className={`p-4 rounded-lg flex items-center ${result.cracked ? 'bg-green-900/20 border border-green-800' : (result.password === "TIMEOUT" ? 'bg-yellow-900/20 border border-yellow-800' : 'bg-red-900/20 border border-red-800')}`}>
                                 {result.cracked ? (
                                     <div className="flex items-center space-x-4">
-                                        <div className="p-2 bg-green-500 rounded-full">
+                                        <div className={`p-2 rounded-full ${result.risk_severity === 'Critical' ? 'bg-red-600' : result.risk_severity === 'High' ? 'bg-orange-500' : 'bg-yellow-500'}`}>
                                             <Unlock size={24} className="text-white" />
                                         </div>
                                         <div>
-                                            <p className="text-sm text-green-400 uppercase tracking-wider font-bold">Password Cracked</p>
+                                            <p className={`text-sm uppercase tracking-wider font-bold ${result.risk_severity === 'Critical' ? 'text-red-400' : result.risk_severity === 'High' ? 'text-orange-400' : 'text-yellow-400'}`}>Password Cracked ({result.risk_severity} Risk)</p>
                                             <p className="text-2xl font-mono text-white mt-1">{result.password}</p>
                                         </div>
                                     </div>

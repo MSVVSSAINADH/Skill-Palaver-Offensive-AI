@@ -11,7 +11,7 @@ class PasswordCheckRequest(BaseModel):
 class RiskCheckRequest(BaseModel):
     clicks: int
     weak_passwords: int
-    training_completed: bool
+    simulations_run: int
 
 @router.post("/password-strength")
 def check_password_strength(request: PasswordCheckRequest):
@@ -19,5 +19,5 @@ def check_password_strength(request: PasswordCheckRequest):
 
 @router.post("/user-risk")
 def check_user_risk(request: RiskCheckRequest):
-    return ml_service.predict_user_risk(request.clicks, request.weak_passwords, request.training_completed)
+    return ml_service.predict_user_risk(request.clicks, request.weak_passwords, request.simulations_run)
 

@@ -288,6 +288,18 @@ const PhishingSim = () => {
                                         </li>
                                     ))}
                                 </ul>
+                                {analysis.feedback && analysis.feedback.length > 0 && (
+                                    <div className="mt-4 border-t border-gray-700 pt-3">
+                                        <h3 className="text-sm font-bold text-gray-300 mb-2">Awareness Feedback</h3>
+                                        <ul className="space-y-2">
+                                            {analysis.feedback.map((fb: string, i: number) => (
+                                                <li key={i} className="text-xs text-gray-400 bg-gray-800 p-2 rounded border border-gray-700 border-l-2 border-l-cyan-500">
+                                                    {fb}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>

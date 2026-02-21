@@ -36,7 +36,10 @@ function App() {
         </aside>
 
         {/* content */}
-        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+          <div className="w-full bg-red-900/90 text-red-100 text-center py-1.5 text-xs font-bold tracking-widest uppercase border-b border-red-700 z-50">
+            ⚠️ FOR SECURITY TRAINING PURPOSES ONLY. RED-TEAM SIMULATOR ENVIRONMENT. ⚠️
+          </div>
           <header className="md:hidden flex items-center p-4 bg-gray-800 border-b border-gray-700">
             <button onClick={() => setIsOpen(true)} className="text-gray-400 hover:text-white mr-4">
               <Menu size={24} />

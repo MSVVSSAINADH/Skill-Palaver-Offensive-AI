@@ -147,7 +147,7 @@ class SocialEngineer:
              {"id": "end_ignore", "sender": "bot", "text": "(No response...)", "delay": 1000, "end": True, "success": False}
         ]
 
-    def generate_email(self, persona: str, tone: str) -> dict:
+    def generate_email(self, persona: str, tone: str, difficulty: str = "basic") -> dict:
         persona = persona.lower()
         tone = tone.lower()
         
@@ -166,6 +166,13 @@ class SocialEngineer:
         else:
             content = options
             
+        if difficulty == "advanced":
+            # Simulate a more sophisticated spear-phishing attack by obfuscating standard red flags
+            content = content.replace("immediately", "by end of day")
+            content = content.replace("URGENT:", "Notification:")
+            content = content.replace("MANDATORY:", "Required:")
+            content += "\n\n(Note: Generated via Advanced Adaptive Simulation)"
+            
         return {
             "content": content,
             "persona": persona,
@@ -175,10 +182,11 @@ class SocialEngineer:
     def analyze_email(self, content: str) -> dict:
         indicators = []
         score = 0
+        feedback = []
         
         # Simple keywords detection
-        urgent_keywords = ["urgent", "fail", "suspend", "immediate", "24 hours", "risk"]
-        link_indicators = ["http://", "bit.ly", "tinyurl", "secure-portal"]
+        urgent_keywords = ["urgent", "fail", "suspend", "immediate", "24 hours", "risk", "immediately", "asap"]
+        link_indicators = ["http://", "bit.ly", "tinyurl", "secure-portal", "click here", "login"]
         grammar_issues = ["kindly", "dear valued", "verify account"]
 
         content_lower = content.lower()
@@ -186,24 +194,39 @@ class SocialEngineer:
         for word in urgent_keywords:
             if word in content_lower:
                 indicators.append(f"Urgency trigger: '{word}'")
-                score += 20
+                score += 25
+                feedback.append(f"Attackers use words like '{word}' to create a false sense of urgency so you act before thinking.")
         
         for word in link_indicators:
             if word in content_lower:
                 indicators.append(f"Suspicious link pattern: '{word}'")
-                score += 30
+                score += 35
+                feedback.append(f"Never click links containing '{word}' without verifying the sender. Hover over links to see the real destination.")
+
+        for word in grammar_issues:
+            if word in content_lower:
+                indicators.append(f"Common phishing phrase: '{word}'")
+                score += 15
+                feedback.append(f"Phrases like '{word}' are often used in mass phishing campaigns.")
+
+        # Deduplicate indicators and feedback but accumulate score for total mentions
+        indicators = list(set(indicators))
+        feedback = list(dict.fromkeys(feedback))
 
         if score > 80:
             rating = "High Risk"
+            feedback.append("Overall: Do not click any links or attachments. Report this immediately.")
         elif score > 40:
             rating = "Medium Risk"
+            feedback.append("Overall: Proceed with caution. Verify the sender through a secondary channel (e.g., call them).")
         else:
             rating = "Low Risk"
 
         return {
             "score": min(score, 100),
             "indicators": indicators,
-            "rating": rating
+            "rating": rating,
+            "feedback": feedback
         }
 
     def generate_chat_script(self, scenario: str) -> dict:

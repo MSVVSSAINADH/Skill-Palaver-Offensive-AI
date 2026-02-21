@@ -1,123 +1,95 @@
-<<<<<<< HEAD
-# 🛡️ CyberAware - Gamified Cybersecurity Training Platform
+# Skill-Palaver-Offensive-AI
 
-**CyberAware** is an advanced, interactive training platform designed to bridge the gap between theoretical cybersecurity knowledge and practical defense. By simulating real-world attacks in a safe, gamified environment, it empowers users to build "muscle memory" against threats like phishing, social engineering, and weak password policies.
+**Skill-Palaver-Offensive-AI** is an AI-driven, adaptive Cybersecurity simulator designed for Red-Team Awareness Training. It provides a safe, gamified environment to simulate real-world attacks such as password cracking and social engineering, empowering users to build practical defense skills and understand the mechanics of cyber threats.
 
----
+> **⚠️ FOR EDUCATIONAL & SECURITY TRAINING PURPOSES ONLY**
+> This platform is a dual-use red-team simulator intended strictly for controlled awareness training. It does not possess real-world exploit capabilities outside of its sandbox simulation environment.
 
-## 🚀 Problem Statement
-**The Human Factor** is the weakest link in cybersecurity.
-- **80%+ of breaches** start with human error (phishing, weak passwords).
-- Traditional training (videos/quizzes) is **passive** and **forgettable**.
-- Users adhere to policies (e.g., "Complex Passwords") without understanding **why** they matter, leading to predictable patterns (e.g., `Password123!`).
+## 🚀 Key Features
 
-**The Solution:**
-CyberAware moves from *telling* users about security to *showing* them.
-*   "Don't click suspicious links" -> **Simulation:** "Here is a safe email vs. a phishing email. Can you spot the difference?"
-*   "Use strong passwords" -> **Simulation:** "Watch this cracking tool break `Password123` in 0.002 seconds."
+### 1. 🔐 Password Attack Simulation Engine
+A realistic password attack simulator that demonstrates the vulnerabilities of weak passwords.
+*   **Dictionary Attacks:** Highlights common password pitfalls.
+*   **Brute-Force Simulations:** Visualizes hash cracking complexity and time estimation.
+*   **AI-Guided Password Guessing:** Simulates intelligent, targeted guessing based on user patterns and hints.
+*   Calculates Risk Severity Scores based on attack success.
 
----
+### 2. 🤖 AI-Driven Behavior Learning Module
+Integrates genuine Scikit-Learn Machine Learning models to predict and analyze user behavior.
+*   **User Susceptibility Prediction:** Identifies high-risk users based on their interactions.
+*   **Password Strength Classification:** ML-based evaluation of password robustness.
+*   Adaptive engine that learns from simulated campaigns.
 
-## 🛠️ Module Breakdown & Features
+### 3. 🎣 Social Engineering Simulation
+A structured phishing and messaging simulator.
+*   **Email Phishing:** Analyzes text context to identify urgency, spoofing, and manipulative markers.
+*   **Chat Phishing (Smishing/Vishing prototypes):** Interactively demonstrates manipulation tactics.
+*   Outputs Phishing Risk Scores and specific Threat Indicators.
 
-### 1. 🔐 Password Attack Simulator
-*Demystifying how hackers break into accounts.*
-
-This module simulates a real password cracking environment (similar to Hashcat or John the Ripper) to demonstrate the mathematical reality of password strength.
-
-#### **Attack Vectors Supported:**
-*   **Dictionary Attack:**
-    *   Uses a curated list of 10,000+ common passwords.
-    *   **Rule-Based Mutations:** Toggles intelligent rules (Append `1`, `!`, `2024`, Leet Speak `a->@`) to show how hackers guess variations.
-*   **Mask Attack (New!):**
-    *   Simulates targeting specific patterns.
-    *   Example: A mask of `?u?l?l?l?d?d` instantly cracks `Pass12` by skipping all other combinations.
-    *   **Educational Value:** Teaches that "Length + Complexity" policies are often predictable if the pattern is common.
-*   **Brute Force Simulation:**
-    *   Calculates the time-to-crack for truly random passwords.
-    *   Visualizes the exponential growth of security with every added character.
-*   **AI-Guided Guessing (Prototype):**
-    *   Uses personal hints (Name, Company, Year) to generate targeted wordlists, simulating a targeted attack.
+### 4. 📊 Evaluation & Metrics Dashboard
+A centralized dashboard to measure training effectiveness.
+*   Tracks Attack Success Rates and User Risk Trends.
+*   Monitors Model Accuracy Metrics.
+*   Delivers an intelligent Awareness Training Feedback Engine, providing personalized recommendations based on exact simulation failures.
 
 ---
 
-### 2. 🎣 Social Engineering Simulator
-*Training resilience against psychological manipulation.*
+## 🏗️ Architecture & Tech Stack
 
-#### **A. Phishing Email Training**
-*   **Training Mode:**
-    *   Directly challenges users to classify emails as **"Safe"** or **"Phishing"**.
-    *   **Dynamic Content:** Generates infinite variations of emails (HR, IT, Finance contexts).
-    *   **Immediate Feedback:** If a user gets it wrong, the system highlights the *exact* indicators (e.g., "Mismatched Sender Domain", "Urgency").
-*   **Generator Mode:**
-    *   Allows Red Teams/Admins to craft custom scenarios for testing.
+### Frontend
+*   **React (TypeScript) + Vite**: Fast, robust UI development.
+*   **Tailwind CSS**: Modern, responsive styling with a dark-mode, hacker aesthetic.
+*   **Lucide React**: Clean iconography.
 
-#### **B. Chat Phishing (Smishing/Vishing)**
-*   Simulates a live chat interface (Teams/Slack/WhatsApp) with an AI bot.
-*   **Scenarios:**
-    *   **CEO Fraud:** "I'm in a meeting, wire this money ASAP." (Authority/Urgency)
-    *   **IT Support:** "We need your 2FA code to fix a virus." (Fear/Helpfulness)
-    *   **Prize Scam:** "You won an iPhone! Click to claim." (Greed/Excitement)
-*   **Dynamic Scripting:**
-    *   Chats are not static text; they are generated dynamically with randomized IPs, names, and contexts to keep training fresh.
-
----
-
-### 3. 📊 Risk Analytics & Reporting
-*   **User Risk Score:**
-    *   Calculates a "Cyber Hygiene" score (0-100) based on simulation performance.
-    *   High Phishing Click Rate + Weak Password Usage = **High Risk**.
-*   **Actionable Insights:**
-    *   "User falls for Urgency tactics."
-    *   "User relies on Pattern-based passwords."
-
----
-
-## 💻 Tech Stack
-
-### **Frontend**
-*   **React (TypeScript):** For a robust, type-safe UI as complex as a desktop tool.
-*   **Tailwind CSS:** For modern, "Dark Mode" hacker aesthetic styling.
-*   **Lucide React:** Iconography for intuitive navigation.
-*   **Axios:** efficient API communication.
-
-### **Backend**
-*   **FastAPI (Python):** High-performance, async API handling.
-*   **Python Security Libraries:**
-    *   `hashlib`, `bcrypt`: For real cryptographic operations.
-    *   `itertools`: For generating attack combinations.
-*   **Architecture:**
-    *   RESTful API design.
-    *   Modular `core/attacks.py` and `core/social_eng.py` logic for easy extensibility.
+### Backend
+*   **FastAPI (Python)**: High-performance, asynchronous backend engine.
+*   **Scikit-Learn, Pandas, NumPy**: Powers the core AI/ML behavior learning and prediction models.
+*   **Passlib, Hashlib, Bcrypt**: Secure cryptographic hashing simulations.
+*   **Pydantic**: Strict data validation and sanitization.
 
 ---
 
 ## 📥 Installation & Setup
 
-1.  **Backend:**
-    ```bash
-    cd backend
-    pip install -r requirements.txt
-    python -m app.main
-    ```
+### Requirements
+*   Node.js (v18+)
+*   Python 3.10+
 
-2.  **Frontend:**
-    ```bash
-    cd frontend
-    npm install
-    npm run dev
-    ```
+### 1. Clone the Repository
+```bash
+git clone https://github.com/your-org/Skill-Palaver-Offensive-AI.git
+cd Skill-Palaver-Offensive-AI
+```
 
-3.  **Access:**
-    *   Frontend: `http://localhost:5173`
-    *   API Docs: `http://localhost:8000/docs`
+### 2. Backend Setup
+```bash
+cd backend
+python -m venv venv
+# Windows: venv\Scripts\activate
+# Mac/Linux: source venv/bin/activate
+pip install -r requirements.txt
+
+# Set up environment variables
+cp .env.example .env
+
+# Run the backend Server
+uvicorn app.main:app --reload
+```
+
+### 3. Frontend Setup
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+### 4. Train AI Models (Optional/If missing)
+To retrain the synthetic behavioral ML models:
+```bash
+python ml_models/train_models.py
+```
 
 ---
 
-## 🔮 Future Roadmap
-*   **AI-Bot Integration:** Replace static chat scripts with a real LLM (Local/API) for dynamic conversations.
-*   **Network Sniffer Module:** Visualize how unencrypted data travels (HTTP vs HTTPS).
-*   **Leaderboard:** Gamify widely across an organization to encourage competitive security practices.
-=======
-# Skill-Palaver-Offensive-AI
->>>>>>> 6db87dd4adfbe98b5da6abad30e2f750f845245d
+## 🛡️ Educational Disclaimer
+This project is designed specifically for **Red-Team Awareness Training**. All simulated attacks (password cracking, phishing) run against internal synthetic data and hashes. It strictly enforces ethical boundaries and cannot be repurposed for malicious external actions.

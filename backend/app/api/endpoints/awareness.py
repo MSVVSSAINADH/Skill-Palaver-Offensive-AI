@@ -12,29 +12,46 @@ class ReportRequest(BaseModel):
 
 @router.post("/generate")
 def generate_report(request: ReportRequest):
-    # Logic to generate recommendations
     recommendations = []
     
+    # Phishing Feedback
     if request.phishing_clicks > 0:
+        risk_level = "High" if request.phishing_clicks >= max(1, request.simulations_run * 0.5) else "Medium"
+        advice = (
+            f"You fell for {request.phishing_clicks} phishing attempts. "
+            "Attackers often use urgency and spoofed domains. Always verify unexpected requests via a secondary channel (e.g., call the sender)."
+        )
         recommendations.append({
             "topic": "Phishing Awareness",
-            "risk": "High",
-            "advice": "Review the 'Social Engineering' module. Always check sender email and unexpected links."
+            "risk": risk_level,
+            "advice": advice
         })
-    else:
+    elif request.simulations_run > 0:
         recommendations.append({
             "topic": "Phishing Awareness",
             "risk": "Low",
-            "advice": "Good job spotting phishing attempts! Stay vigilant."
+            "advice": "Excellent work spotting phishing attempts! Continue to scrutinize senders and links before clicking."
         })
 
+    # Password Feedback
     if request.weak_passwords_count > 0:
+        risk_level = "High" if request.weak_passwords_count > 2 else "Medium"
+        advice = (
+            f"You used {request.weak_passwords_count} weak passwords that could be cracked quickly. "
+            "Stop relying on patterns (like appending '123' or '!') and start using a Password Manager to generate long, random passphrases."
+        )
         recommendations.append({
             "topic": "Password Security",
-            "risk": "Medium",
-            "advice": "Use a password manager and enable MFA. Avoid simple dictionary words."
+            "risk": risk_level,
+            "advice": advice
         })
-
+    elif request.simulations_run > 0:
+         recommendations.append({
+            "topic": "Password Security",
+            "risk": "Low",
+            "advice": "Your password choices are resilient. Keep using secure, unique passphrases for each service."
+        })
+    
     score = 100 - (request.phishing_clicks * 20) - (request.weak_passwords_count * 10)
     score = max(0, score)
 
@@ -42,7 +59,7 @@ def generate_report(request: ReportRequest):
         "user_name": request.user_name,
         "security_score": score,
         "recommendations": recommendations,
-        "training_status": "Complete" if score > 80 else "Needs Improvement"
+        "training_status": "Complete" if score >= 80 else "Needs Improvement"
     }
 
 @router.get("/")
