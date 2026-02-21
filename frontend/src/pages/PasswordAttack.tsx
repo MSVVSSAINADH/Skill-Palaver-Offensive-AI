@@ -7,7 +7,6 @@ const PasswordAttack = () => {
     const [attackType, setAttackType] = useState('dictionary');
     const [hashType, setHashType] = useState('md5');
     const [maxLength, setMaxLength] = useState(4);
-    const [mask, setMask] = useState('?l?l?l?d?d');
     const [useRules, setUseRules] = useState(false);
     const [isRunning, setIsRunning] = useState(false);
     const [result, setResult] = useState<any>(null);
@@ -76,7 +75,6 @@ const PasswordAttack = () => {
                 hash_type: hashType,
                 attack_type: attackType,
                 max_length: maxLength,
-                mask: mask,
                 use_rules: useRules,
                 hints: {
                     name: (document.getElementById('hint-name') as HTMLInputElement)?.value || '',
@@ -131,7 +129,6 @@ const PasswordAttack = () => {
                                 >
                                     <option value="md5">MD5</option>
                                     <option value="sha256">SHA-256</option>
-                                    <option value="bcrypt">Bcrypt</option>
                                 </select>
                             </div>
                             <div>
@@ -142,7 +139,6 @@ const PasswordAttack = () => {
                                     className="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-cyan-500 outline-none"
                                 >
                                     <option value="dictionary">Dictionary Attack</option>
-                                    <option value="mask">Mask Attack (Hashcat)</option>
                                     <option value="bruteforce">Brute Force</option>
                                     <option value="ai_guided">AI-Guided Guessing</option>
                                 </select>
@@ -162,29 +158,6 @@ const PasswordAttack = () => {
                                 </label>
                                 <p className="text-xs text-gray-500 mt-2 ml-8">
                                     Applies rules like Best64 (Append numbers, capitalization, leet speak) to each dictionary word.
-                                </p>
-                            </div>
-                        )}
-
-                        {attackType === 'mask' && (
-                            <div className="bg-gray-900/50 p-4 rounded-lg border border-gray-700 space-y-2">
-                                <label className="block text-sm font-medium text-gray-400">Mask Pattern</label>
-                                <input
-                                    type="text"
-                                    value={mask}
-                                    onChange={(e) => setMask(e.target.value)}
-                                    className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white font-mono text-sm focus:ring-1 focus:ring-cyan-500 outline-none"
-                                    placeholder="?u?l?l?l?d?d"
-                                />
-                                <div className="grid grid-cols-2 gap-2 text-xs text-gray-500 font-mono mt-1">
-                                    <div>?l = a-z</div>
-                                    <div>?u = A-Z</div>
-                                    <div>?d = 0-9</div>
-                                    <div>?s = special</div>
-                                    <div>?a = all</div>
-                                </div>
-                                <p className="text-xs text-cyan-400 mt-2">
-                                    Example: <strong>?u?l?l?l?d?d</strong> matches "Pass12"
                                 </p>
                             </div>
                         )}
@@ -315,7 +288,7 @@ const PasswordAttack = () => {
                                         <div>
                                             <p className="text-sm text-yellow-500 uppercase tracking-wider font-bold">Time Limit Exceeded</p>
                                             <p className="text-sm text-gray-300 mt-1 max-w-sm">
-                                                Search space too large for CPU. Mask <strong>{mask}</strong> has millions of combinations.
+                                                Search space too large to compute within the allowed timeframe.
                                             </p>
                                         </div>
                                     </div>

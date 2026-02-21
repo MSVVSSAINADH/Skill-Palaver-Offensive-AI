@@ -186,7 +186,8 @@ class SocialEngineer:
         
         # Simple keywords detection
         urgent_keywords = ["urgent", "fail", "suspend", "immediate", "24 hours", "risk", "immediately", "asap"]
-        link_indicators = ["http://", "bit.ly", "tinyurl", "secure-portal", "click here", "login"]
+        # Treat both http and https as suspicious if they map to obscure domains in real scenarios
+        link_indicators = ["http://", "https://", "bit.ly", "tinyurl", "secure-portal", "click here", "login"]
         grammar_issues = ["kindly", "dear valued", "verify account"]
 
         content_lower = content.lower()

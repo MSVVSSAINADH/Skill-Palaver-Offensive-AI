@@ -155,73 +155,148 @@ class PasswordAttacker:
         attempts = 0
         guesses = set()
 
+        if not hints:
+            return False, None, attempts
+
         # Base words from hints
-        base_words = []
-        if hints:
-            for key, value in hints.items():
-                if value:
-                    base_words.append(str(value))
-                    base_words.append(str(value).lower())
-                    base_words.append(str(value).upper())
-                    base_words.append(str(value).title())
+        raw_words = set()
+        for key, value in hints.items():
+            if value:
+                val_str = str(value)
+                raw_words.add(val_str)
+                # If there are spaces, try splitting into individual words
+                if ' ' in val_str:
+                    for w in val_str.split():
+                        raw_words.add(w)
 
-        # Common patterns to append
-        appendages = ["123", "1", "!", "2023", "2024", "2025", "@123", "123!", "321"]
+        base_words = set()
+        for w in raw_words:
+            base_words.add(w)
+            base_words.add(w.lower())
+            base_words.add(w.upper())
+            base_words.add(w.capitalize())
+            base_words.add(w.title())
+
+            # Add reverse strings for flavor 
+            if len(w) > 3:
+                base_words.add(w[::-1])
+                base_words.add(w[::-1].lower())
+                base_words.add(w[::-1].capitalize())
+
+        # Common patterns to append/prepend
+        appendages = ["123", "1", "!", "2023", "2024", "2025", "@123", "123!", "321", "01", "12", "69", "99", "?", ".", "$", "!!", "0", "007", "11", "22", "88", "999", "admin", "password", "qwe"]
+        
+        # Expand years dynamically (Huge expansion 1900-2030)
+        years = [str(y) for y in range(1930, 2030)]
+        appendages.extend(years)
+        
+        # Add year + punctuation combos
+        for y in range(1980, 2025):
+             appendages.append(f"{y}!")
+             appendages.append(f"@{y}")
+             appendages.append(f"!{y}")
+
         if mutation_intensity == "high":
-            appendages.extend(["1234", "!!!", "111", "999", "admin", "password"])
+            appendages.extend(["1234", "12345", "!!!", "111", "999", "0000", "123456", "??", "10", "11", "00", "123123", "000", "abc", "xyz"])
+            # Expand month combinations
+            for m in ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]:
+                for d in ["01", "15", "30", "31", "12", "07"]:
+                    appendages.append(f"{m}{d}")
+                    appendages.append(f"{d}{m}")
             
-        # 1. Try raw hints
-        for word in base_words:
-            if word not in guesses:
-                guesses.add(word)
-                attempts += 1
-                if self.hash_password(word, algorithm) == target_hash: return True, word, attempts
-
-        # 2. Try hints + appendages
-        for word in base_words:
-            for suffix in appendages:
-                 guess = word + suffix
-                 if guess not in guesses:
-                     guesses.add(guess)
-                     attempts += 1
-                     if self.hash_password(guess, algorithm) == target_hash: return True, guess, attempts
-
-        # 2. Try hints + appendages
-        for word in base_words:
-            for suffix in appendages:
-                 guess = word + suffix
-                 if guess not in guesses:
-                     guesses.add(guess)
-                     attempts += 1
-                     if self.hash_password(guess, algorithm) == target_hash: return True, guess, attempts
-
-        # 2.5 Try combining hints (e.g. Name + Year)
+            # Massive loop of pure numbers if high intensity
+            for i in range(100, 999):
+                 appendages.append(str(i))
+            
         import itertools
-        for w1, w2 in itertools.permutations(base_words, 2):
-            guess = w1 + w2
+
+        def check_add(guess):
+            nonlocal attempts
             if guess not in guesses:
                 guesses.add(guess)
                 attempts += 1
-                if self.hash_password(guess, algorithm) == target_hash: return True, guess, attempts
+                if algorithm == "bcrypt":
+                    if bcrypt.checkpw(guess.encode(), target_hash.encode()): return True
+                else:
+                    if algorithm == "md5":
+                        if hashlib.md5(guess.encode()).hexdigest() == target_hash: return True
+                    elif algorithm == "sha256":
+                        if hashlib.sha256(guess.encode()).hexdigest() == target_hash: return True
+                    else:
+                        if self.hash_password(guess, algorithm) == target_hash: return True
+            return False
 
-        # 3. Try Leet speak variations on hints
-        leet_map = {'a': '@', 'e': '3', 'i': '1', 'o': '0', 's': '$'}
-        for word in base_words:
-            chars = list(word)
-            # Simple full leet
-            leet_word = "".join([leet_map.get(c.lower(), c) for c in chars])
-            if leet_word not in guesses:
-                 guesses.add(leet_word)
-                 attempts += 1
-                 if self.hash_password(leet_word, algorithm) == target_hash: return True, leet_word, attempts
-            
-            # Leet + appendages
+        # 1. Try raw hints and casing
+        for word in list(base_words):
+            if check_add(word): return True, word, attempts
+
+        # 2. Try hints + appendages (Suffix and Prefix)
+        for word in list(base_words):
             for suffix in appendages:
-                 guess = leet_word + suffix
-                 if guess not in guesses:
-                     guesses.add(guess)
-                     attempts += 1
-                     if self.hash_password(guess, algorithm) == target_hash: return True, guess, attempts
+                if check_add(word + suffix): return True, word + suffix, attempts
+                if mutation_intensity == "high":
+                    # Prepend suffixes and separate with underscores
+                    if check_add(suffix + word): return True, suffix + word, attempts
+                    if check_add(word + "_" + suffix): return True, word + "_" + suffix, attempts
+                    if check_add(word + "-" + suffix): return True, word + "-" + suffix, attempts
+
+        # 3. Try combining hints (e.g. Name + Year or Pet + City)
+        hint_list = list(raw_words)
+        combinators = ["", "-", "_", "."] if mutation_intensity == "high" else [""]
+        for w1, w2 in itertools.permutations(hint_list, 2):
+            for comb in combinators:
+                guess1 = w1.lower() + comb + w2.lower()
+                guess2 = w1.capitalize() + comb + w2.lower()
+                guess3 = w1.capitalize() + comb + w2.capitalize()
+                
+                if check_add(guess1): return True, guess1, attempts
+                if check_add(guess2): return True, guess2, attempts
+                if check_add(guess3): return True, guess3, attempts
+                
+                # Combine combinations + basic subset of appendages
+                subset_appendages = ["1", "!", "123", "2024", "2025"]
+                for suffix in subset_appendages:
+                    if check_add(guess1 + suffix): return True, guess1 + suffix, attempts
+                    if check_add(guess3 + suffix): return True, guess3 + suffix, attempts
+
+        # 4. Try Leet speak variations on hints
+        leet_map = {'a': '@', 'e': '3', 'i': '1', 'o': '0', 's': '$', 'l': '1', 't': '7'}
+        leet_map_complex = {'a': '4', 'e': '3', 'i': '!', 'o': '0', 's': '5', 't': '+', 'b': '8', 'g': '9'}
+
+        for word in list(raw_words):
+            variants = [word.lower(), word.capitalize()]
+            if mutation_intensity == "high":
+                variants.append(word.upper())
+                
+            for var in variants:
+                chars = list(var)
+                # Full leet substitution (Standard)
+                leet_word_std = "".join([leet_map.get(c.lower(), c) for c in chars])
+                if check_add(leet_word_std): return True, leet_word_std, attempts
+                
+                # Full leet substitution (Complex)
+                if mutation_intensity == "high":
+                    leet_word_cx = "".join([leet_map_complex.get(c.lower(), c) for c in chars])
+                    if check_add(leet_word_cx): return True, leet_word_cx, attempts
+
+                # Leet + Appendages
+                for suffix in appendages:
+                    if check_add(leet_word_std + suffix): return True, leet_word_std + suffix, attempts
+                    if mutation_intensity == "high":
+                        if check_add(suffix + leet_word_std): return True, suffix + leet_word_std, attempts
+                        if check_add(leet_word_cx + suffix): return True, leet_word_cx + suffix, attempts
+
+        # 5. Vowel stripping (Deep AI Guessing Heuristic)
+        if mutation_intensity == "high":
+            vowels = "aeiouAEIOU"
+            for word in list(raw_words):
+                stripped = "".join([c for c in word if c not in vowels])
+                if stripped and len(stripped) >= 3:
+                     variants = [stripped.lower(), stripped.capitalize()]
+                     for var in variants:
+                         if check_add(var): return True, var, attempts
+                         for suffix in appendages:
+                             if check_add(var + suffix): return True, var + suffix, attempts
 
         return False, None, attempts
 

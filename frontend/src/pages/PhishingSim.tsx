@@ -13,6 +13,11 @@ const PhishingSim = () => {
     const [analysis, setAnalysis] = useState<any>(null);
     const [loading, setLoading] = useState(false);
 
+    // Analyzer State
+    const [analyzerText, setAnalyzerText] = useState('');
+    const [analyzerType, setAnalyzerType] = useState('email');
+    const [customAnalysis, setCustomAnalysis] = useState<any>(null);
+
     // Training State
     const [trainingEmail, setTrainingEmail] = useState<any>(null);
     const [trainingFeedback, setTrainingFeedback] = useState<any>(null);
@@ -44,6 +49,29 @@ const PhishingSim = () => {
             setAnalysis(response.data);
         } catch (error) {
             console.error("Analysis failed", error);
+        }
+    };
+
+    const analyzeCustomText = async () => {
+        if (!analyzerText.trim()) return;
+        setLoading(true);
+        setCustomAnalysis(null);
+        try {
+            let response;
+            if (analyzerType === 'email') {
+                response = await axios.post('http://localhost:8000/api/social/analyze', {
+                    content: analyzerText
+                });
+            } else {
+                response = await axios.post('http://localhost:8000/api/social/chat/analyze', {
+                    message: analyzerText
+                });
+            }
+            setCustomAnalysis(response.data);
+        } catch (error) {
+            console.error("Custom analysis failed", error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -98,6 +126,12 @@ const PhishingSim = () => {
                         className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${mode === 'generator' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:text-white'}`}
                     >
                         <AlertTriangle size={16} className="inline mr-2" /> Generator Mode
+                    </button>
+                    <button
+                        onClick={() => setMode('analyzer')}
+                        className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${mode === 'analyzer' ? 'bg-yellow-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                    >
+                        <ShieldCheck size={16} className="inline mr-2" /> Custom Analyzer
                     </button>
                 </div>
             </div>
@@ -194,6 +228,139 @@ const PhishingSim = () => {
                                 </p>
                             </div>
                         </div>
+                    </div>
+                </div>
+            ) : mode === 'analyzer' ? (
+                // --- CUSTOM ANALYZER MODE ---
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                        <h2 className="text-xl font-bold text-yellow-400 mb-6 flex items-center">
+                            <ShieldCheck className="mr-2" /> Custom Text Analysis
+                        </h2>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm text-gray-400 mb-1">Content Type</label>
+                                <select
+                                    value={analyzerType}
+                                    onChange={(e) => setAnalyzerType(e.target.value)}
+                                    className="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-yellow-500 outline-none"
+                                >
+                                    <option value="email">Email Analysis (Indicators)</option>
+                                    <option value="chat">Chat Analysis (ML Intent)</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm text-gray-400 mb-1">Paste Content Here</label>
+                                <textarea
+                                    className="w-full h-48 bg-gray-900 text-gray-300 rounded-lg p-4 border border-gray-600 focus:outline-none focus:border-yellow-500 font-mono text-sm resize-none"
+                                    placeholder={analyzerType === 'email' ? "Paste full email body here..." : "Type the chat message..."}
+                                    value={analyzerText}
+                                    onChange={(e) => setAnalyzerText(e.target.value)}
+                                ></textarea>
+                            </div>
+
+                            <button
+                                onClick={analyzeCustomText}
+                                disabled={loading || !analyzerText.trim()}
+                                className="w-full py-3 bg-gradient-to-r from-yellow-600 to-orange-600 rounded-lg font-bold text-white hover:from-yellow-500 hover:to-orange-500 transition-all flex items-center justify-center disabled:opacity-50"
+                            >
+                                {loading ? 'Analyzing...' : (
+                                    <><ShieldCheck size={18} className="mr-2" /> Run Security NLP Scan</>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 flex flex-col">
+                        <h2 className="text-xl font-bold text-yellow-400 mb-6 flex items-center">
+                            <AlertTriangle className="mr-2" /> Results
+                        </h2>
+
+                        {!customAnalysis && !loading && (
+                            <div className="flex-1 flex flex-col items-center justify-center text-gray-600 border border-gray-700 border-dashed rounded-lg min-h-[250px]">
+                                <MessageSquare size={48} className="opacity-20 mb-2" />
+                                <p>Submit text to view analysis.</p>
+                            </div>
+                        )}
+
+                        {customAnalysis && analyzerType === 'email' && (
+                            <div className="flex-1 bg-gray-900 rounded-xl p-5 border border-gray-700 animation-fade-in shadow-inner">
+                                <p className={`text-3xl font-bold mb-4 ${customAnalysis.rating === 'High Risk' ? 'text-red-500' : 'text-yellow-500'}`}>
+                                    {customAnalysis.rating} <span className="text-xl text-gray-500">({customAnalysis.score}/100)</span>
+                                </p>
+
+                                <h3 className="text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">Detected Indicators</h3>
+                                <ul className="space-y-2 mb-6">
+                                    {customAnalysis.indicators.map((ind: string, i: number) => (
+                                        <li key={i} className="text-sm text-red-400 flex items-start bg-red-900/10 p-2 rounded">
+                                            <AlertTriangle size={14} className="mt-0.5 mr-2 shrink-0" /> {ind}
+                                        </li>
+                                    ))}
+                                    {customAnalysis.indicators.length === 0 && (
+                                        <li className="text-sm text-green-400">No dangerous indicators detected.</li>
+                                    )}
+                                </ul>
+
+                                {customAnalysis.feedback && customAnalysis.feedback.length > 0 && (
+                                    <>
+                                        <h3 className="text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">Mitigation Advice</h3>
+                                        <ul className="space-y-2">
+                                            {customAnalysis.feedback.map((fb: string, i: number) => (
+                                                <li key={i} className="text-sm text-gray-300 bg-gray-800 p-3 rounded-lg border-l-4 border-l-cyan-500">
+                                                    {fb}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </>
+                                )}
+                            </div>
+                        )}
+
+                        {customAnalysis && analyzerType === 'chat' && (
+                            <div className="flex-1 bg-gray-900 rounded-xl p-5 border border-gray-700 animation-fade-in shadow-inner">
+                                <div className="mb-6">
+                                    <h3 className="text-sm font-bold text-gray-400 mb-1 uppercase tracking-wider">ML Intent Classification</h3>
+                                    <p className={`text-2xl font-bold capitalize ${customAnalysis.intent_label === 'uncertain' ? 'text-yellow-500' :
+                                            customAnalysis.intent_label === 'friendly' ? 'text-green-500' : 'text-red-500'
+                                        }`}>
+                                        {customAnalysis.intent_label.replace('_', ' ')}
+                                    </p>
+                                </div>
+
+                                <div className="mb-6">
+                                    <div className="flex justify-between items-center mb-1">
+                                        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Model Confidence</h3>
+                                        <span className="text-cyan-400 font-bold">{(customAnalysis.confidence_score * 100).toFixed(1)}%</span>
+                                    </div>
+                                    <div className="w-full bg-gray-700 rounded-full h-2">
+                                        <div
+                                            className="bg-cyan-500 h-2 rounded-full transition-all duration-500"
+                                            style={{ width: `${Math.min(customAnalysis.confidence_score * 100, 100)}%` }}
+                                        ></div>
+                                    </div>
+                                </div>
+
+                                {customAnalysis.requires_human_review ? (
+                                    <div className="p-4 bg-yellow-900/30 border border-yellow-800 rounded-lg flex items-start">
+                                        <AlertTriangle className="text-yellow-500 mr-3 shrink-0" size={20} />
+                                        <p className="text-sm text-yellow-200">
+                                            <strong className="block mb-1">Human Review Required</strong>
+                                            The model confidence is below the 60% threshold. The NLP pipeline has safely routed this to 'Uncertain' to prevent false positives.
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <div className="p-4 bg-green-900/30 border border-green-800 rounded-lg flex items-start">
+                                        <ShieldCheck className="text-green-500 mr-3 shrink-0" size={20} />
+                                        <p className="text-sm text-green-200">
+                                            <strong className="block mb-1">High Confidence Mapping</strong>
+                                            The NLP model is highly confident in this psychological vector assessment.
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
             ) : (

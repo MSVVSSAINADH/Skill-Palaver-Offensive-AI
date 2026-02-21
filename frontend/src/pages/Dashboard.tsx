@@ -17,7 +17,7 @@ const Dashboard = () => {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const response = await axios.get('http://localhost:8000/api/stats/');
+                const response = await axios.get(`http://localhost:8000/api/stats/?t=${new Date().getTime()}`);
                 setStats(response.data);
             } catch (error) {
                 console.error("Failed to fetch stats", error);
